@@ -1,0 +1,5 @@
+.*
+behatgenerator.json
+vendor
+composer.phar
+

@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "scenarios":
+  {
+    "categories": {
+      "scenario": {
+        "catinstances": {"xs": 1, "s": 10, "m": 100, "l": 100, "xl": 100},
+        "subcatinstances": {"xs": 1, "s": 10, "m": 10, "l": 100, "xl": 100},
+        "catwithsubcat": ["categories","scenario","catinstances"]
+      }
+    },
+    "courses": {
+      "scenario": {
+        "courseinstancesinmisccategory": {"xs":1, "s":10, "m":10, "l":10, "xl":10},
+        "courseinstancesincategory": {"xs":1, "s":10, "m":50, "l":10, "xl":10},
+        "courseinstancesinsubcategory": {"xs":1, "s":10, "m":50, "l":100, "xl":500},
+        "numsection": {"xs":5, "s":10, "m":100, "l":1000, "xl":1000}
+      }
+    },
+    "activities": {
+      "scenario": {
+        "numberofallactivitiesineachcourse": {"xs":1, "s":2, "m":50, "l":50, "xl":50}
+      }
+    },
+    "users": {
+      "scenario": {
+        "students": {"xs":1, "s":50, "m":1000, "l":10000, "xl":100000},
+        "teachers": {"xs":1, "s":10, "m":10, "l":100, "xl":500},
+        "managers": {"xs":1, "s":2, "m":10, "l":20, "xl":50},
+        "coursecreators": {"xs":1, "s":2, "m":10, "l":20, "xl":50}
+        }
+    },
+    "custom_roles": {
+      "scenario": {
+        "customteacherrole" : {"xs":1, "s":5, "m":10, "l":100, "xl":100},
+        "customstudentrole" : {"xs":1, "s":5, "m":10, "l":100, "xl":100}
+      }
+    },
+    "enrolments": {
+      "scenario": {
+        "coursecreators": ["users","scenario","coursecreators"],
+        "maxstudentspercourse": {"xs":1, "s":25, "m":100, "l":1000, "xl":10000},
+        "maxteacherspercourse": {"xs":1, "s":2, "m":5, "l":10, "xl":100},
+        "maxmanagerspercourse": {"xs":1, "s":2, "m":5, "l":10, "xl":50}
+      }
+    },
+    "groups": {
+      "scenario": {
+        "numberofgroupsineachcourse": {"xs":1, "s":10, "m":100, "l":1000, "xl":1000},
+        "numberofgroupingsineachcourse": {"xs":1, "s":10, "m":50, "l":100, "xl":100},
+        "numberofstudentsineachgroup" : ["users","scenario","students"]
+      },
+      "scenario_outline": {
+        "count": {"xs": 1, "s": 10, "m": 100, "l": 1000, "xl": 10000},
+        "course": "#!count!#"
+      }
+    },
+    "groups_members": {
+      "scenario": {
+        "numberofstudentsineachgroup": {"xs":1, "s":10, "m":100, "l":1000, "xl":1000},
+        "numberofgroupsineachcourse": {"xs":1, "s":10, "m":50, "l":100, "xl":1000}
+      },
+      "scenario_outline": {
+        "count": {"xs": 1, "s": 10, "m": 100, "l": 10000, "xl": 10000},
+        "course": "#!count!#"
+      }
+    },
+    "role_override": {
+    },
+    "cohorts": {
+      "scenario" : {
+        "cohorts": {"xs": 1, "s": 10, "m": 100, "l": 1000, "xl": 10000},
+        "studentspercohort": ["users","scenario","students"]
+      }
+    },
+    "main_test_course": {
+      "scenario_outline": {
+        "discussion": "#!count!#",
+        "count": {"xs": 1, "s": 10, "m": 100, "l": 10000, "xl": 100000}
+      }
+    }
+  }
+}
+

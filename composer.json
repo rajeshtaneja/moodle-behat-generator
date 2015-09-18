@@ -1,0 +1,23 @@
+{
+    "name": "moodlehq/behat-generator",
+    "description": "Moodle behat generator, for creating moodle site data",
+    "keywords": ["Moodle", "performance", "JMeter"],
+    "type": "library",
+    "authors": [
+        {
+            "name": "Rajesh Taneja",
+            "email": "rajesh@moodle.com",
+            "role": "Test automation developer"
+        }
+    ],
+    "require": {
+        "symfony/console": "2.7.4",
+        "symfony/process": "2.7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "moodlehq\\behat-generator\\": "/classes"
+        }
+    },
+    "bin": ["bin/moodle_behat_generator"]
+}

@@ -1,0 +1,58 @@
+#!/usr/bin/env php
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * CLI tool for installing and generating performance site data.
+ *
+ * @package    moodlehq_behat_generator
+ * @copyright  2015 Rajesh Taneja <rajesh@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+if (isset($_SERVER['REMOTE_ADDR'])) {
+    die(); // No access from web!.
+}
+
+// Check if it's downloaded via composer or cloned.
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    // Cloned.
+    require_once(__DIR__ . '/../vendor/autoload.php');
+
+} else if (file_exists(__DIR__ . '/../../../autoload.php')) {
+    // Via composer.
+    require_once(__DIR__ . '/../../../autoload.php');
+
+} else {
+    // Install composer dependencies.
+    require_once(__DIR__.'/../classes/util.php');
+    \moodlehq\behat_generator\util::testing_update_composer_dependencies(__DIR__.'/..');
+
+    require_once(__DIR__ . '/../vendor/autoload.php');
+}
+
+require_once(__DIR__ . '/../classes/generator_command.php');
+require_once(__DIR__ . '/../classes/generator_application.php');
+
+use moodlehq\behat_generator\generator_command;
+use moodlehq\behat_generator\generator_application;
+use Symfony\Component\Console\Application;
+
+$application = new generator_application();
+$status = $application->run();
+
+
+exit($status);
