@@ -268,12 +268,7 @@ class generator {
             return 1;
         }
 
-        if ($sitestatus == installer::SITE_INSTALLED) {
-            $this->execute("restore", $state);
-        } else {
-            $output->writeln("<error>Site is not installed, restore not allowed.");
-            return 1;
-        }
+        return $this->execute("restore", $state);
     }
 
     /**
