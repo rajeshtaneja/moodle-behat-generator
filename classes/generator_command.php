@@ -222,7 +222,7 @@ class generator_command extends Command {
         );
 
         // Write moodle path and directory path to final json to be used.
-        file_put_contents($behatgeneratorjson, json_encode($configjson));
+        file_put_contents($behatgeneratorjson, json_encode($configjson, JSON_PRETTY_PRINT));
 
         // Write config if not already available.
         if (!file_exists($moodlepath.'/config.php')) {
