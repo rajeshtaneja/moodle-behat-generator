@@ -42,9 +42,15 @@ use Behat\Behat\Event\SuiteEvent,
     Behat\Behat\Event\ScenarioEvent,
     Behat\Behat\Event\FeatureEvent,
     Behat\Behat\Event\OutlineExampleEvent,
-    Behat\Behat\Event\StepEvent;
+    Behat\Behat\Event\StepEvent,
+    Behat\Mink\Exception\DriverException,
+    WebDriver\Exception\NoSuchWindow,
+    WebDriver\Exception\UnexpectedAlertOpen,
+    WebDriver\Exception\UnknownError,
+    WebDriver\Exception\CurlExec,
+    WebDriver\Exception\NoAlertOpenError;
 
-// 31+
+/*// 31+
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope,
     Behat\Testwork\Hook\Scope\AfterSuiteScope,
     Behat\Behat\Hook\Scope\BeforeFeatureScope,
@@ -58,7 +64,7 @@ use Behat\Testwork\Hook\Scope\BeforeSuiteScope,
     WebDriver\Exception\UnexpectedAlertOpen as UnexpectedAlertOpen,
     WebDriver\Exception\UnknownError as UnknownError,
     WebDriver\Exception\CurlExec as CurlExec,
-    WebDriver\Exception\NoAlertOpenError as NoAlertOpenError;
+    WebDriver\Exception\NoAlertOpenError as NoAlertOpenError;*/
 
 /**
  * Hooks to the behat process.
