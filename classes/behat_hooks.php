@@ -29,22 +29,36 @@
 // With BEHAT_TEST we will be using $CFG->behat_* instead of $CFG->dataroot, $CFG->prefix and $CFG->wwwroot.
 require_once(__DIR__.'/util.php');
 
-use Behat\Behat\Event\SuiteEvent,
-    Behat\Behat\Event\ScenarioEvent,
-    Behat\Behat\Event\FeatureEvent,
-    Behat\Behat\Event\OutlineExampleEvent,
-    Behat\Behat\Event\StepEvent,
-    Behat\Mink\Exception\DriverException,
-    WebDriver\Exception\NoSuchWindow,
-    WebDriver\Exception\UnexpectedAlertOpen,
-    WebDriver\Exception\UnknownError,
-    WebDriver\Exception\CurlExec,
-    WebDriver\Exception\NoAlertOpenError;
 use moodlehq\behat_generator\generator,
     moodlehq\behat_generator\util;
 
 $moodlepath = util::get_moodle_path();
 require_once($moodlepath . '/lib/behat/behat_base.php');
+
+// Behat config file specifing the main context class,
+// the required Behat extensions and Moodle test wwwroot.
+// 30.
+use Behat\Behat\Event\SuiteEvent,
+    Behat\Behat\Event\ScenarioEvent,
+    Behat\Behat\Event\FeatureEvent,
+    Behat\Behat\Event\OutlineExampleEvent,
+    Behat\Behat\Event\StepEvent;
+
+// 31+
+use Behat\Testwork\Hook\Scope\BeforeSuiteScope,
+    Behat\Testwork\Hook\Scope\AfterSuiteScope,
+    Behat\Behat\Hook\Scope\BeforeFeatureScope,
+    Behat\Behat\Hook\Scope\AfterFeatureScope,
+    Behat\Behat\Hook\Scope\BeforeScenarioScope,
+    Behat\Behat\Hook\Scope\AfterScenarioScope,
+    Behat\Behat\Hook\Scope\BeforeStepScope,
+    Behat\Behat\Hook\Scope\AfterStepScope,
+    Behat\Mink\Exception\DriverException as DriverException,
+    WebDriver\Exception\NoSuchWindow as NoSuchWindow,
+    WebDriver\Exception\UnexpectedAlertOpen as UnexpectedAlertOpen,
+    WebDriver\Exception\UnknownError as UnknownError,
+    WebDriver\Exception\CurlExec as CurlExec,
+    WebDriver\Exception\NoAlertOpenError as NoAlertOpenError;
 
 /**
  * Hooks to the behat process.
@@ -75,15 +89,18 @@ class behat_hooks extends behat_base {
      * Includes config.php to use moodle codebase with $CFG->behat_*
      * instead of $CFG->prefix and $CFG->dataroot, called once per suite.
      *
-     * @param SuiteEvent $event event before suite.
+     * @param SuiteEvent|BeforeSuiteScope $event event before suite.
      * @static
      * @throws Exception
      * @BeforeSuite
      */
-    public static function before_suite(SuiteEvent $event) {
+    public static function before_suite($event) {
         global $CFG;
 
-        define('CLI_SCRIPT', 1);
+        if (!defined('CLI_SCRIPT')) {
+            define('CLI_SCRIPT', 1);
+        }
+
         $moodlepath = util::get_moodle_path();
         require_once($moodlepath.'/config.php');
         require_once(__DIR__.'/inc.php');
@@ -124,11 +141,45 @@ class behat_hooks extends behat_base {
             $this->throw_unknown_exception($e);
         }
 
-
         // We need the Mink session to do it and we do it only before the first scenario.
         if (self::is_first_scenario()) {
-            behat_selectors::register_moodle_selectors($session);
-            behat_context_helper::set_session($session);
+            $moodlepath = util::get_moodle_path();
+            $branch = 0;
+            require($moodlepath . '/version.php');
+            $moodlebranch = (int)$branch;
+            if ($moodlebranch <= 28) {
+                behat_selectors::register_moodle_selectors($session);
+                behat_context_helper::set_session($session);
+            } else if ($moodlebranch <= 30) {
+                behat_selectors::register_moodle_selectors($session);
+                behat_context_helper::set_main_context($event->getContext()->getMainContext());
+            } else if ($moodlebranch == 31) {
+                behat_selectors::register_moodle_selectors($session);
+                behat_context_helper::set_session($event->getEnvironment());
+            } else {
+                // We need the Mink session to do it and we do it only before the first scenario.
+                $namedpartialclass = 'behat_partial_named_selector';
+                $namedexactclass = 'behat_exact_named_selector';
+                $suitename = $event->getSuite()->getName();
+
+                // If override selector exist, then set it as default behat selectors class.
+                $overrideclass = behat_config_util::get_behat_theme_selector_override_classname($suitename, 'named_partial', true);
+                if (class_exists($overrideclass)) {
+                    $namedpartialclass = $overrideclass;
+                }
+
+                // If override selector exist, then set it as default behat selectors class.
+                $overrideclass = behat_config_util::get_behat_theme_selector_override_classname($suitename, 'named_exact', true);
+                if (class_exists($overrideclass)) {
+                    $namedexactclass = $overrideclass;
+                }
+
+                $this->getSession()->getSelectorsHandler()->registerSelector('named_partial', new $namedpartialclass());
+                $this->getSession()->getSelectorsHandler()->registerSelector('named_exact', new $namedexactclass());
+
+                behat_context_helper::set_environment($event->getEnvironment());
+            }
+
         }
 
         // Reset mink session between the scenarios.
@@ -153,7 +204,7 @@ class behat_hooks extends behat_base {
      * @param SuiteEvent $event
      * @AfterStep
      */
-    public static function after_step(StepEvent $event) {
+    public static function after_step($event) {
         generator::dot();
     }
 

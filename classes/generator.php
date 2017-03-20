@@ -586,6 +586,8 @@ class generator {
             echo str_repeat(' * ');
         }
 
+        ob_flush();
+
         self::$logcounter++;
         if (self::$logcounter % 70 == 0) {
             echo " " . (self::$logcounter * self::$logcounter/70) . PHP_EOL;

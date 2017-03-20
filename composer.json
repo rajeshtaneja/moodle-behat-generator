@@ -12,7 +12,8 @@
     ],
     "require": {
         "symfony/console": "2.4.10",
-        "symfony/process": "2.4.10"
+        "symfony/process": "2.4.10",
+        "Symfony/yaml": "2.4.10"
     },
     "autoload": {
         "psr-4": {

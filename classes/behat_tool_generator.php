@@ -27,8 +27,10 @@ require_once(__DIR__.'/util.php');
 $moodlepath = \moodlehq\behat_generator\util::get_moodle_path();
 require_once($moodlepath . '/lib/tests/behat/behat_data_generators.php');
 
-use Behat\Gherkin\Node\TableNode;
-use Behat\Behat\Exception\PendingException;
+/*use Behat\Gherkin\Node\TableNode;
+use Behat\Behat\Exception\PendingException;*/
+use Behat\Gherkin\Node\TableNode as TableNode;
+use Behat\Behat\Tester\Exception\PendingException as PendingException;
 use moodlehq\behat_generator\generator;
 
 /**
@@ -120,8 +122,8 @@ class behat_tool_generator extends behat_base {
             for ($repeatcounter = 1; $repeatcounter <= $repeat; $repeatcounter++) {
                 for ($i = 1; $i <= $instances; $i++) {
                     $rowtoadd = $row;
-                    $datanode = new TableNode();
-                    $datanode->addRow($firstrow);
+                    $datanode = array();
+                    $datanode[] = $firstrow;
 
                     foreach ($rowtoadd as $key => $value) {
                         if ($reference) {
@@ -132,11 +134,11 @@ class behat_tool_generator extends behat_base {
                         $rowtoadd[$key] = str_replace("#refcount#", $i, $rowtoadd[$key]);
                         $rowtoadd[$key] = str_replace("#repeatcount#", $repeatcounter, $rowtoadd[$key]);
                     }
-                    $datanode->addRow($rowtoadd);
+                    $datanode[] = $rowtoadd;
 
                     // Call generator function.
                     //$contexttouse->$function($elementname, $datanode);
-                    $datanodes[] = $datanode;
+                    $datanodes[] = new TableNode($datanode);
 
                     // We want sequential filling of data so increment reference counter.
                     if ($reference && ($i % $maxperreference == 0)) {

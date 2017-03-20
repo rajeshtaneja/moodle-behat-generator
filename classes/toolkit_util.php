@@ -284,7 +284,7 @@ trait toolkit_util {
         $contexts = glob(__DIR__ . "/behat_*.php");
 
         foreach ($contexts as $context) {
-            preg_match('/.*\/(behat_[a-z_].*)\.php$/', $context, $matches);
+            preg_match('/.*\/(behat_[a-z_0-9].*)\.php$/', $context, $matches);
             $classname = $matches[1];
             $stepsdefinitions[$classname] = $context;
         }
@@ -309,14 +309,54 @@ trait toolkit_util {
             }
         }
 
+        $moodlepath = self::get_moodle_path();
+        $branch = 0;
+        if (!defined('MOODLE_INTERNAL')) {
+            define('MOODLE_INTERNAL', true);
+        }
+        require($moodlepath . '/version.php');
+        $moodlebranch = (int)$branch;
         // Behat config file specifing the main context class,
         // the required Behat extensions and Moodle test wwwroot.
-        $contents = self::get_config_file_contents($features, $stepsdefinitions, $proxy);
+        if ($moodlebranch <= 30) {
+            $contents = self::get_config_file_contents($features, $stepsdefinitions, $proxy);
+        } else if ($moodlebranch == 31) {
+            $contents = self::get_config_file_contents_31($features, $stepsdefinitions);
+        } else {
+            $behatconfigutil = new \behat_config_util();
+            $behatconfigutil->set_theme_suite_to_include_core_features('boost');
+            $contents = $behatconfigutil->get_config_file_contents($features, $stepsdefinitions);
+            if (!empty($proxy)) {
+                $contents = add_proxy_to_config($contents, $proxy);
+            }
+        }
 
         // Stores the file.
         if (!file_put_contents($configfilepath, $contents)) {
             self::performance_exception('File ' . $configfilepath . ' can not be created');
         }
+    }
+
+    /**
+     * Add proxy to the config.
+     *
+     * @param String $contents
+     * @param String $proxy
+     * @return string
+     */
+    protected static function add_proxy_to_config($contents, $proxy) {
+        $config = \Symfony\Component\Yaml\Yaml::parse($contents);
+
+        $proxyconfig = array('capabilities' => array(
+            'proxy' => array(
+                "httpProxy" => $proxy,
+                "proxyType" => "manual"
+            )
+        ));
+        $config['default']['extensions']['Moodle\BehatExtension'] =
+            array_merge($config['default']['extensions']['Moodle\BehatExtension'], $proxyconfig);
+
+        return \Symfony\Component\Yaml\Yaml::dump($config, 10, 2);
     }
 
     /**
@@ -376,6 +416,66 @@ trait toolkit_util {
                         "proxyType" => "manual"
                         )
                     ));
+            $config['default']['extensions']['Moodle\BehatExtension\Extension'] =
+                array_merge($config['default']['extensions']['Moodle\BehatExtension\Extension'], $proxyconfig);
+        }
+
+        return symfonyyaml::dump($config, 10, 2);
+    }
+
+    /**
+     * Behat config file specifing the main context class,
+     * the required Behat extensions and Moodle test wwwroot.
+     *
+     * @param array $features The system feature files
+     * @param array $stepsdefinitions The system steps definitions
+     * @return string
+     */
+    protected static function get_config_file_contents_31($features, $stepsdefinitions) {
+        global $CFG;
+
+        // We require here when we are sure behat dependencies are available.
+        require_once($CFG->dirroot . '/vendor/autoload.php');
+
+        $selenium2wdhost = array('wd_host' => 'http://localhost:4444/wd/hub');
+
+        // Comments use black color, so failure path is not visible. Using color other then black/white is safer.
+        // https://github.com/Behat/Behat/pull/628.
+        $config = array(
+            'default' => array(
+                'formatters' => array(
+                    'moodle_progress' => array(
+                        'output_styles' => array(
+                            'comment' => array('magenta'))
+                    )
+                ),
+                'suites' => array(
+                    'default' => array(
+                        'paths' => $features,
+                        'contexts' => array_keys($stepsdefinitions)
+                    )
+                ),
+                'extensions' => array(
+                    'Behat\MinkExtension' => array(
+                        'base_url' => $CFG->behat_wwwroot,
+                        'goutte' => null,
+                        'selenium2' => $selenium2wdhost
+                    ),
+                    'Moodle\BehatExtension' => array(
+                        'moodledirroot' => $CFG->dirroot,
+                        'steps_definitions' => $stepsdefinitions
+                    )
+                )
+            )
+        );
+
+        if (!empty($proxy)) {
+            $proxyconfig = array('capabilities' => array(
+                'proxy' => array(
+                    "httpProxy" => $proxy,
+                    "proxyType" => "manual"
+                )
+            ));
             $config['default']['extensions']['Moodle\BehatExtension\Extension'] =
                 array_merge($config['default']['extensions']['Moodle\BehatExtension\Extension'], $proxyconfig);
         }
